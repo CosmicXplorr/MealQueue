@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Campus Meal Queue Manager</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="container">
+      <!-- Header -->
+      <header>
+        <p class="eyebrow">CCA 2 Dynamic Web Application</p>
+        <h1>Campus Meal Queue Manager</h1>
+        <p class="intro">
+          Students reserve a canteen meal and pickup slot. Staff can see the queue and mark each order ready.
+        </p>
+      </header>
+
+      <!-- Order Summary Metrics -->
+      <section class="metrics" aria-label="Order summary">
+        <div>
+          <span id="metric-total">2</span>
+          <small>Total orders</small>
+        </div>
+        <div>
+          <span id="metric-pending">1</span>
+          <small>Waiting in queue</small>
+        </div>
+        <div>
+          <span id="metric-ready">1</span>
+          <small>Ready for pickup</small>
+        </div>
+      </section>
+
+      <!-- Meal Reservation Form -->
+      <section class="panel" aria-labelledby="order-heading">
+        <h2 id="order-heading">Reserve your meal</h2>
+
+        <!-- Optional error message container (uncomment or toggle via JS if needed) -->
+        <!-- <p class="error" role="alert">Enter a valid student name using 2 to 49 letters.</p> -->
+
+        <form class="order-form" method="POST" action="/orders" id="meal-order-form">
+          <label>
+            Student name
+            <input 
+              name="studentName" 
+              type="text" 
+              maxlength="50" 
+              required 
+              placeholder="e.g. Aditi Kulkarni"
+              pattern="^[A-Za-z][A-Za-z .'-]{1,48}$"
+              title="2 to 49 characters, starting with a letter"
+            >
+          </label>
+
+          <label>
+            Meal
+            <select name="meal" required>
+              <option value="Veg Thali">Veg Thali</option>
+              <option value="Paneer Wrap">Paneer Wrap</option>
+              <option value="Masala Sandwich">Masala Sandwich</option>
+              <option value="Fruit Bowl">Fruit Bowl</option>
+            </select>
+          </label>
+
+          <label>
+            Pickup slot
+            <select name="pickupSlot" required>
+              <option value="12:00 - 12:15">12:00 - 12:15</option>
+              <option value="12:15 - 12:30">12:15 - 12:30</option>
+              <option value="12:30 - 12:45">12:30 - 12:45</option>
+              <option value="12:45 - 1:00">12:45 - 1:00</option>
+            </select>
+          </label>
+
+          <label>
+            Optional note
+            <input name="notes" type="text" maxlength="80" placeholder="No onions, if possible">
+          </label>
+
+          <button type="submit">Join the queue</button>
+        </form>
+      </section>
+
+      <!-- Live Orders & Queue -->
+      <section class="orders-section" aria-labelledby="queue-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="queue-heading">Live order queue</h2>
+            <p>Queue position updates automatically when an order is marked ready.</p>
+          </div>
+          <form method="GET" action="/" class="filter-form" id="filter-form">
+            <label>
+              Filter by pickup slot
+              <select name="slot" id="slot-filter">
+                <option value="">All slots</option>
+                <option value="12:00 - 12:15">12:00 - 12:15</option>
+                <option value="12:15 - 12:30">12:15 - 12:30</option>
+                <option value="12:30 - 12:45">12:30 - 12:45</option>
+                <option value="12:45 - 1:00">12:45 - 1:00</option>
+              </select>
+            </label>
+          </form>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Student</th>
+                <th>Meal</th>
+                <th>Pickup</th>
+                <th>Queue</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody">
+              <!-- Sample Ready Order -->
+              <tr>
+                <td>#1</td>
+                <td>
+                  <strong>Aditi Kulkarni</strong><br>
+                  <span class="note">Extra spicy</span>
+                </td>
+                <td>Veg Thali</td>
+                <td>12:00 - 12:15</td>
+                <td>-</td>
+                <td><span class="status ready">Ready</span></td>
+                <td><span class="ready-label">Ready for pickup</span></td>
+              </tr>
+
+              <!-- Sample Pending Order -->
+              <tr>
+                <td>#2</td>
+                <td>
+                  <strong>Rohan Mehta</strong><br>
+                  <span class="note">No onions, if possible</span>
+                </td>
+                <td>Paneer Wrap</td>
+                <td>12:15 - 12:30</td>
+                <td>#1</td>
+                <td><span class="status pending">Pending</span></td>
+                <td>
+                  <form class="inline-form" method="POST" action="/orders/2/ready">
+                    <button class="ready-button" type="submit">Mark ready</button>
+                  </form>
+                </td>
+              </tr>
+
+              <!-- Empty state row placeholder when no orders match -->
+              <!-- <tr><td colspan="7" class="empty">No orders match this pickup slot yet.</td></tr> -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      Campus Meal Queue Manager | Running commit <strong>local</strong> | 
+      <a href="/api/orders">JSON API</a> | 
+      <a href="/health">Health</a>
+    </footer>
+  </body>
+</html>
