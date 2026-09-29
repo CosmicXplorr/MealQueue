@@ -1,0 +1,56 @@
+name: CCA 2 CI CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm run lint
+      - name: Test
+        run: pnpm test
+
+  build:
+    name: Build and smoke test
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build --build-arg GIT_SHA=${{ github.sha }} -t campus-meal-queue-manager .
+      - name: Start container and check health
+        run: |
+          docker run -d --name campus-queue-test -p 3000:3000 campus-meal-queue-manager
+          for attempt in {1..10}; do
+            if curl -fsS http://localhost:3000/health; then exit 0; fi
+            sleep 2
+          done
+          docker logs campus-queue-test
+          exit 1
+      - name: Clean up container
+        if: always()
+        run: docker rm -f campus-queue-test || true
+
+  deploy:
+    name: Deploy to Render
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}&ref=${{ github.sha }}"
